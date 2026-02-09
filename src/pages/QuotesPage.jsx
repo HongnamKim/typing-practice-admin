@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
-import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions } from 'antd';
-import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+import { useState, useMemo, useRef } from 'react';
+import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions, Progress } from 'antd';
+import { SortAscendingOutlined, SortDescendingOutlined, UploadOutlined } from '@ant-design/icons';
 import { quotesApi } from '../api';
 import { useInfiniteScroll } from '../hooks';
 import { QUOTE_STATUS, QUOTE_STATUS_COLORS, QUOTE_STATUS_OPTIONS, QUOTE_TYPE, QUOTE_TYPE_COLORS, QUOTE_TYPE_OPTIONS, QUOTE_ORDER_OPTIONS } from '../constants';
 import { formatDateTime } from '../utils';
+import { defaultQuotes } from '../const/default-quotes.const';
 
 const { Title, Text } = Typography;
+const BATCH_SIZE = 50;
 
 export default function QuotesPage() {
   const [statusFilter, setStatusFilter] = useState(null);
@@ -19,6 +21,12 @@ export default function QuotesPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailTarget, setDetailTarget] = useState(null);
 
+  // 기본 문장 업로드 상태
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0, success: 0, fail: 0 });
+  const cancelRef = useRef(false);
+
   const filters = useMemo(() => {
     const f = { orderBy, sortDirection };
     if (statusFilter) f.status = statusFilter;
@@ -26,7 +34,7 @@ export default function QuotesPage() {
     return f;
   }, [statusFilter, typeFilter, orderBy, sortDirection]);
 
-  const { data: quotes, loading, loadingMore, handleScroll, updateItem, removeItem } = useInfiniteScroll(
+  const { data: quotes, loading, loadingMore, handleScroll, updateItem, removeItem, refresh } = useInfiniteScroll(
     quotesApi.getList,
     filters,
     '문장 목록을 불러오는데 실패했습니다.'
@@ -119,6 +127,45 @@ export default function QuotesPage() {
     setEditModalOpen(true);
   };
 
+  const handleDefaultUpload = async () => {
+    const total = defaultQuotes.length;
+    setUploadProgress({ current: 0, total, success: 0, fail: 0 });
+    setUploading(true);
+    cancelRef.current = false;
+
+    let success = 0;
+    let fail = 0;
+
+    for (let i = 0; i < total; i += BATCH_SIZE) {
+      if (cancelRef.current) break;
+
+      const batch = defaultQuotes.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((quote) =>
+          quotesApi.createPublic(quote).then((created) => quotesApi.approve(created.quoteId))
+        )
+      );
+
+      const batchSuccess = results.filter(r => r.status === 'fulfilled').length;
+      success += batchSuccess;
+      fail += results.length - batchSuccess;
+
+      setUploadProgress({ current: Math.min(i + BATCH_SIZE, total), total, success, fail });
+    }
+
+    setUploading(false);
+    if (cancelRef.current) {
+      message.warning(`업로드가 취소되었습니다. (성공: ${success}, 실패: ${fail})`);
+    } else {
+      message.success(`업로드 완료! (성공: ${success}, 실패: ${fail})`);
+      refresh();
+    }
+  };
+
+  const handleCancelUpload = () => {
+    cancelRef.current = true;
+  };
+
   const openDetail = (record) => {
     setDetailTarget(record);
     setDetailModalOpen(true);
@@ -165,6 +212,7 @@ export default function QuotesPage() {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={4} style={{ margin: 0 }}>문장 관리</Title>
         <Space>
+          <Button icon={<UploadOutlined />} onClick={() => setUploadModalOpen(true)}>기본 문장 업로드</Button>
           <Select placeholder="상태 필터" allowClear style={{ width: 120 }} value={statusFilter} onChange={setStatusFilter} options={QUOTE_STATUS_OPTIONS} />
           <Select placeholder="타입 필터" allowClear style={{ width: 120 }} value={typeFilter} onChange={setTypeFilter} options={QUOTE_TYPE_OPTIONS} />
           <Select style={{ width: 100 }} value={orderBy} onChange={setOrderBy} options={QUOTE_ORDER_OPTIONS} />
@@ -186,6 +234,43 @@ export default function QuotesPage() {
         />
         {loadingMore && <div style={{ textAlign: 'center', padding: 16 }}><Spin /></div>}
       </div>
+
+      {/* 기본 문장 업로드 모달 */}
+      <Modal
+        title="기본 문장 업로드"
+        open={uploadModalOpen}
+        onCancel={() => !uploading && setUploadModalOpen(false)}
+        closable={!uploading}
+        maskClosable={!uploading}
+        footer={
+          uploading ? (
+            <Button danger onClick={handleCancelUpload}>취소</Button>
+          ) : (
+            <Space>
+              <Button onClick={() => setUploadModalOpen(false)}>닫기</Button>
+              <Button type="primary" onClick={handleDefaultUpload}>업로드 시작</Button>
+            </Space>
+          )
+        }
+      >
+        {uploading ? (
+          <div>
+            <Progress percent={Math.round((uploadProgress.current / uploadProgress.total) * 100)} status="active" />
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <Text>{uploadProgress.current} / {uploadProgress.total}</Text>
+              <br />
+              <Text type="success">성공: {uploadProgress.success}</Text>
+              {' / '}
+              <Text type="danger">실패: {uploadProgress.fail}</Text>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p>기본 문장 <strong>{defaultQuotes.length}개</strong>를 업로드합니다.</p>
+            <p><Text type="secondary">문장은 자동 승인되어 바로 사용 가능합니다.</Text></p>
+          </div>
+        )}
+      </Modal>
 
       {/* 상세 보기 모달 */}
       <Modal title="문장 상세" open={detailModalOpen} onCancel={closeDetail} footer={renderDetailActions()} width={600}>

@@ -102,5 +102,5 @@ export const REPORT_ORDER_OPTIONS = [
 ];
 
 // 페이지네이션
-export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE = 50;
 export const SCROLL_THRESHOLD = 100;
