@@ -1,70 +1,95 @@
-# Getting Started with Create React App
+# Typing Practice Admin
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+한국어 타이핑 연습 서비스의 관리자 클라이언트입니다.
 
-## Available Scripts
+## 기술 스택
 
-In the project directory, you can run:
+- React 19
+- Ant Design 6
+- React Router 7
+- Axios
 
-### `npm start`
+## 시작하기
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 환경 변수 설정
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+cp .env.example .env.local
+```
 
-### `npm test`
+`.env.local` 파일에 값을 채워주세요.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| 변수 | 설명 |
+|------|------|
+| `REACT_APP_API_URL` | 백엔드 API 서버 주소 (기본값: `http://localhost:8080`) |
+| `REACT_APP_GOOGLE_CLIENT_ID` | Google OAuth Client ID |
 
-### `npm run build`
+### 실행
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm install
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+`http://localhost:3000`에서 실행됩니다.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 프로젝트 구조
 
-### `npm run eject`
+```
+src/
+├── api/                # API 클라이언트 및 도메인별 API 모듈
+│   ├── client.js       # axios 인스턴스 (JWT 인터셉터, 토큰 갱신)
+│   ├── auth.js
+│   ├── members.js
+│   ├── quotes.js
+│   └── reports.js
+├── components/
+│   └── AdminLayout.jsx # 사이드바 + 헤더 레이아웃
+├── const/
+│   └── default-quotes.const.js  # 기본 문장 데이터
+├── constants/
+│   └── index.js        # 역할, 상태, 타입 등 상수 정의
+├── contexts/
+│   └── AuthContext.jsx  # 인증 상태 관리
+├── hooks/
+│   └── useInfiniteScroll.js  # 무한 스크롤 커스텀 훅
+├── pages/
+│   ├── LoginPage.jsx    # Google OAuth 로그인
+│   ├── MembersPage.jsx  # 회원 관리
+│   ├── QuotesPage.jsx   # 문장 관리
+│   └── ReportsPage.jsx  # 신고 관리
+└── utils/
+    └── index.js         # 날짜 포맷 등 유틸리티
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 주요 기능
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 인증
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Google OAuth 로그인 (ADMIN 권한 필요)
+- JWT Access Token + Refresh Token (localStorage 저장)
+- 401 응답 시 자동 토큰 갱신
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 회원 관리
 
-## Learn More
+- 회원 목록 조회 (권한 필터, 정렬)
+- 상세 보기 → 권한 변경 (USER ↔ ADMIN)
+- ADMIN 권한 부여 시 이메일/닉네임 확인 팝업
+- 회원 차단/해제 (사유 입력)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 문장 관리
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- 문장 목록 조회 (상태/타입 필터, 정렬)
+- 상세 보기 → 승인, 거부, 수정, 숨김, 복원, 삭제
+- 기본 문장 벌크 업로드 (배치 처리, 진행률 표시)
 
-### Code Splitting
+### 신고 관리
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- 신고 목록 조회 (상태 필터, 정렬)
+- 상세 보기 → 문장 수정 후 처리 / 문장 삭제
+- 신고 삭제
 
-### Analyzing the Bundle Size
+## 관련 저장소
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [typing-practice-be](https://github.com/your-username/typing-practice-be) — Spring Boot 백엔드
+- [tp-react](https://github.com/your-username/tp-react) — 사용자용 React 프론트엔드
