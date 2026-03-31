@@ -20,6 +20,7 @@ export default function QuotesPage() {
   const [editForm, setEditForm] = useState({ sentence: '', author: '' });
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailTarget, setDetailTarget] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // 기본 문장 업로드 상태
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -166,9 +167,18 @@ export default function QuotesPage() {
     cancelRef.current = true;
   };
 
-  const openDetail = (record) => {
-    setDetailTarget(record);
+  const openDetail = async (record) => {
     setDetailModalOpen(true);
+    setDetailLoading(true);
+    try {
+      const data = await quotesApi.getDetail(record.quoteId);
+      setDetailTarget(data);
+    } catch (error) {
+      message.error('문장 상세 조회에 실패했습니다.');
+      setDetailTarget(record);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const closeDetail = () => {
@@ -180,6 +190,8 @@ export default function QuotesPage() {
     { title: 'ID', dataIndex: 'quoteId', key: 'quoteId', width: 70 },
     { title: '문장', dataIndex: 'sentence', key: 'sentence', ellipsis: true },
     { title: '출처', dataIndex: 'author', key: 'author', width: 120, render: (author) => author || '-' },
+    { title: '언어', dataIndex: 'language', key: 'language', width: 80 },
+    { title: '난이도', dataIndex: 'difficulty', key: 'difficulty', width: 80, render: (v) => v != null ? v.toFixed(1) : '-' },
     { title: '타입', dataIndex: 'type', key: 'type', width: 90, render: (type) => <Tag color={QUOTE_TYPE_COLORS[type]}>{type}</Tag> },
     { title: '상태', dataIndex: 'status', key: 'status', width: 90, render: (status) => <Tag color={QUOTE_STATUS_COLORS[status]}>{status}</Tag> },
     { title: '신고', dataIndex: 'reportCount', key: 'reportCount', width: 60, render: (count) => (count > 0 ? <Tag color="red">{count}</Tag> : count) },
@@ -274,16 +286,29 @@ export default function QuotesPage() {
 
       {/* 상세 보기 모달 */}
       <Modal title="문장 상세" open={detailModalOpen} onCancel={closeDetail} footer={renderDetailActions()} width={600}>
-        {detailTarget && (
+        {detailLoading ? (
+          <div style={{ textAlign: 'center', padding: 32 }}><Spin /></div>
+        ) : detailTarget && (
           <Descriptions column={1} bordered size="small">
             <Descriptions.Item label="ID">{detailTarget.quoteId}</Descriptions.Item>
             <Descriptions.Item label="문장"><Text style={{ whiteSpace: 'pre-wrap' }}>{detailTarget.sentence}</Text></Descriptions.Item>
             <Descriptions.Item label="출처">{detailTarget.author || '-'}</Descriptions.Item>
+            <Descriptions.Item label="언어">{detailTarget.language}</Descriptions.Item>
+            <Descriptions.Item label="난이도">{detailTarget.difficulty != null ? detailTarget.difficulty.toFixed(1) : '-'}</Descriptions.Item>
             <Descriptions.Item label="타입"><Tag color={QUOTE_TYPE_COLORS[detailTarget.type]}>{detailTarget.type}</Tag></Descriptions.Item>
             <Descriptions.Item label="상태"><Tag color={QUOTE_STATUS_COLORS[detailTarget.status]}>{detailTarget.status}</Tag></Descriptions.Item>
             <Descriptions.Item label="신고 수">{detailTarget.reportCount > 0 ? <Tag color="red">{detailTarget.reportCount}</Tag> : detailTarget.reportCount}</Descriptions.Item>
             <Descriptions.Item label="생성일">{formatDateTime(detailTarget.createdAt)}</Descriptions.Item>
             <Descriptions.Item label="수정일">{formatDateTime(detailTarget.updatedAt)}</Descriptions.Item>
+            {detailTarget.typingStats && (
+              <>
+                <Descriptions.Item label="총 시도">{detailTarget.typingStats.totalAttemptsCount}</Descriptions.Item>
+                <Descriptions.Item label="유효 시도">{detailTarget.typingStats.validAttemptsCount}</Descriptions.Item>
+                <Descriptions.Item label="평균 CPM">{detailTarget.typingStats.avgCpm?.toFixed(1) ?? '-'}</Descriptions.Item>
+                <Descriptions.Item label="평균 정확도">{detailTarget.typingStats.avgAcc != null ? `${(detailTarget.typingStats.avgAcc * 100).toFixed(1)}%` : '-'}</Descriptions.Item>
+                <Descriptions.Item label="평균 초기화">{detailTarget.typingStats.avgResetCount?.toFixed(1) ?? '-'}</Descriptions.Item>
+              </>
+            )}
           </Descriptions>
         )}
       </Modal>

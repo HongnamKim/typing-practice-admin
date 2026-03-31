@@ -93,6 +93,7 @@ export const QUOTE_ORDER_OPTIONS = [
   { value: 'createdAt', label: '생성일' },
   { value: 'status', label: '상태' },
   { value: 'type', label: '타입' },
+  { value: 'difficulty', label: '난이도' },
   { value: 'reportCount', label: '신고수' },
 ];
 

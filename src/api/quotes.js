@@ -7,6 +7,12 @@ export const quotesApi = {
     return response.data;
   },
 
+  // 문장 단건 조회
+  getDetail: async (quoteId) => {
+    const response = await client.get(`/admin/quotes/${quoteId}`);
+    return response.data;
+  },
+
   // 공개 문장 생성
   createPublic: async (data) => {
     const response = await client.post('/quotes/public', data);
