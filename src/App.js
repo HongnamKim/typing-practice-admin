@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import MembersPage from './pages/MembersPage';
 import QuotesPage from './pages/QuotesPage';
 import ReportsPage from './pages/ReportsPage';
+import BatchPage from './pages/BatchPage';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="members" element={<MembersPage />} />
         <Route path="quotes" element={<QuotesPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="batch" element={<BatchPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/members" replace />} />
     </Routes>

@@ -8,7 +8,7 @@ import { authApi } from '../api';
 const { Title, Text } = Typography;
 
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-const REDIRECT_URI = window.location.origin;
+const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI;
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth();

@@ -3,7 +3,10 @@ import client from './client';
 export const authApi = {
   // 로그인 (Google OAuth 콜백 후 토큰 교환)
   login: async (code) => {
-    const response = await client.post('/auth/google', { code });
+    const response = await client.post('/auth/google', {
+      code,
+      redirectUri: process.env.REACT_APP_REDIRECT_URI,
+    });
     return response.data;
   },
 
