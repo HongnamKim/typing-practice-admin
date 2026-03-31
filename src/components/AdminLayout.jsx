@@ -8,6 +8,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -28,6 +29,11 @@ const menuItems = [
     key: '/reports',
     icon: <WarningOutlined />,
     label: '신고 관리',
+  },
+  {
+    key: '/batch',
+    icon: <ThunderboltOutlined />,
+    label: '배치 관리',
   },
 ];
 
