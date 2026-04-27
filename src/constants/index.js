@@ -105,3 +105,26 @@ export const REPORT_ORDER_OPTIONS = [
 // 페이지네이션
 export const DEFAULT_PAGE_SIZE = 50;
 export const SCROLL_THRESHOLD = 100;
+
+// 단어 언어
+export const WORD_LANGUAGE = {
+  KOREAN: 'KOREAN',
+  ENGLISH: 'ENGLISH',
+};
+
+export const WORD_LANGUAGE_COLORS = {
+  [WORD_LANGUAGE.KOREAN]: 'blue',
+  [WORD_LANGUAGE.ENGLISH]: 'purple',
+};
+
+export const WORD_LANGUAGE_OPTIONS = [
+  { value: WORD_LANGUAGE.KOREAN, label: 'KOREAN' },
+  { value: WORD_LANGUAGE.ENGLISH, label: 'ENGLISH' },
+];
+
+// 단어 정렬 옵션
+export const WORD_ORDER_OPTIONS = [
+  { value: 'id', label: 'ID' },
+  { value: 'difficulty', label: '난이도' },
+  { value: 'createdAt', label: '생성일' },
+];

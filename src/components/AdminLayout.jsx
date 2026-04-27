@@ -4,6 +4,7 @@ import { Layout, Menu, Button, theme } from 'antd';
 import {
   UserOutlined,
   FileTextOutlined,
+  ReadOutlined,
   WarningOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -24,6 +25,11 @@ const menuItems = [
     key: '/quotes',
     icon: <FileTextOutlined />,
     label: '문장 관리',
+  },
+  {
+    key: '/words',
+    icon: <ReadOutlined />,
+    label: '단어 관리',
   },
   {
     key: '/reports',

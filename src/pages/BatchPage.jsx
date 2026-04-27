@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Card, Space, Typography, message, DatePicker, Row, Col, Divider } from 'antd';
+import { Button, Card, Space, Typography, message, DatePicker, Row, Col, Divider, Tabs } from 'antd';
 import { ThunderboltOutlined, SyncOutlined } from '@ant-design/icons';
 import { statsApi } from '../api';
 
@@ -42,6 +42,36 @@ const MEMBER_JOBS = [
   },
 ];
 
+const WORD_JOBS = [
+  {
+    key: 'wordTyping',
+    title: '단어별 타이핑 통계 재계산',
+    description: 'WordTypingStats 전체 재계산 (overwrite)',
+    api: () => statsApi.recalculateWordTyping(),
+  },
+  {
+    key: 'globalWord',
+    title: '전역 단어 통계 재계산',
+    description: 'GlobalWordStatistics 재계산',
+    api: () => statsApi.recalculateGlobalWord(),
+  },
+];
+
+const MEMBER_WORD_JOBS = [
+  {
+    key: 'memberWordTyping',
+    title: '회원 단어 누적 통계 재계산',
+    description: 'MemberWordTypingStats 전체 재계산',
+    api: () => statsApi.recalculateMemberWordTyping(),
+  },
+  {
+    key: 'memberWordTypo',
+    title: '회원 단어 오타 통계 재계산',
+    description: 'MemberWordTypoStats 전체 재계산 (delete + create)',
+    api: () => statsApi.recalculateMemberWordTypo(),
+  },
+];
+
 function BatchCard({ job, loading, onRun }) {
   return (
     <Col span={8}>
@@ -67,6 +97,7 @@ function BatchCard({ job, loading, onRun }) {
 export default function BatchPage() {
   const [loading, setLoading] = useState({});
   const [dailyDate, setDailyDate] = useState(null);
+  const [dailyWordDate, setDailyWordDate] = useState(null);
 
   const handleRun = async (key, apiFn) => {
     setLoading(prev => ({ ...prev, [key]: true }));
@@ -97,10 +128,25 @@ export default function BatchPage() {
     }
   };
 
-  return (
-    <div>
-      <Title level={4} style={{ marginBottom: 24 }}>배치 관리</Title>
+  const handleDailyWordRun = async () => {
+    if (!dailyWordDate) {
+      message.warning('날짜를 선택해주세요.');
+      return;
+    }
+    const dateStr = dailyWordDate.format('YYYY-MM-DD');
+    setLoading(prev => ({ ...prev, memberDailyWord: true }));
+    try {
+      await statsApi.recalculateMemberDailyWord(dateStr);
+      message.success(`${dateStr} 단어 일별 통계 재계산 완료`);
+    } catch (error) {
+      message.error(`단어 일별 통계 재계산 실패: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(prev => ({ ...prev, memberDailyWord: false }));
+    }
+  };
 
+  const quoteTab = (
+    <>
       <Divider orientation="left">문장 통계</Divider>
       <Row gutter={[16, 16]}>
         {QUOTE_JOBS.map(job => (
@@ -147,6 +193,70 @@ export default function BatchPage() {
           </Card>
         </Col>
       </Row>
+    </>
+  );
+
+  const wordTab = (
+    <>
+      <Divider orientation="left">단어 통계</Divider>
+      <Row gutter={[16, 16]}>
+        {WORD_JOBS.map(job => (
+          <BatchCard
+            key={job.key}
+            job={job}
+            loading={loading[job.key]}
+            onRun={() => handleRun(job.key, job.api)}
+          />
+        ))}
+      </Row>
+
+      <Divider orientation="left" style={{ marginTop: 120 }}>개인 단어 통계</Divider>
+      <Row gutter={[16, 16]}>
+        {MEMBER_WORD_JOBS.map(job => (
+          <BatchCard
+            key={job.key}
+            job={job}
+            loading={loading[job.key]}
+            onRun={() => handleRun(job.key, job.api)}
+          />
+        ))}
+        <Col span={8}>
+          <Card size="small">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text strong>회원 단어 일별 통계 재계산</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>특정 날짜의 MemberDailyWordStats 재계산 (KST 어제 이하)</Text>
+              <Space.Compact style={{ width: '100%' }}>
+                <DatePicker
+                  value={dailyWordDate}
+                  onChange={setDailyWordDate}
+                  style={{ flex: 1 }}
+                  placeholder="날짜 선택"
+                />
+                <Button
+                  icon={<SyncOutlined />}
+                  loading={loading.memberDailyWord}
+                  onClick={handleDailyWordRun}
+                >
+                  실행
+                </Button>
+              </Space.Compact>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
+    </>
+  );
+
+  return (
+    <div>
+      <Title level={4} style={{ marginBottom: 24 }}>배치 관리</Title>
+      <Tabs
+        defaultActiveKey="quote"
+        items={[
+          { key: 'quote', label: '문장', children: quoteTab },
+          { key: 'word', label: '단어', children: wordTab },
+        ]}
+      />
     </div>
   );
 }

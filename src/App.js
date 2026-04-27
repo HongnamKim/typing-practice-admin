@@ -6,6 +6,7 @@ import AdminLayout from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import MembersPage from './pages/MembersPage';
 import QuotesPage from './pages/QuotesPage';
+import WordsPage from './pages/WordsPage';
 import ReportsPage from './pages/ReportsPage';
 import BatchPage from './pages/BatchPage';
 
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="/members" replace />} />
         <Route path="members" element={<MembersPage />} />
         <Route path="quotes" element={<QuotesPage />} />
+        <Route path="words" element={<WordsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="batch" element={<BatchPage />} />
       </Route>
