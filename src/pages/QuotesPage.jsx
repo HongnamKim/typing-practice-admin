@@ -1,11 +1,12 @@
 import { useState, useMemo, useRef } from 'react';
-import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions, Progress } from 'antd';
-import { SortAscendingOutlined, SortDescendingOutlined, UploadOutlined } from '@ant-design/icons';
+import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions, Progress, Tabs } from 'antd';
+import { SortAscendingOutlined, SortDescendingOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import { quotesApi } from '../api';
 import { useInfiniteScroll } from '../hooks';
 import { QUOTE_STATUS, QUOTE_STATUS_COLORS, QUOTE_STATUS_OPTIONS, QUOTE_TYPE, QUOTE_TYPE_COLORS, QUOTE_TYPE_OPTIONS, QUOTE_ORDER_OPTIONS } from '../constants';
 import { formatDateTime } from '../utils';
 import { defaultQuotes } from '../const/default-quotes.const';
+import DeletedQuotesTab from './DeletedQuotesTab';
 
 const { Title, Text } = Typography;
 const BATCH_SIZE = 50;
@@ -221,31 +222,50 @@ export default function QuotesPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={4} style={{ margin: 0 }}>문장 관리</Title>
-        <Space>
-          <Button icon={<UploadOutlined />} onClick={() => setUploadModalOpen(true)}>기본 문장 업로드</Button>
-          <Select placeholder="상태 필터" allowClear style={{ width: 120 }} value={statusFilter} onChange={setStatusFilter} options={QUOTE_STATUS_OPTIONS} />
-          <Select placeholder="타입 필터" allowClear style={{ width: 120 }} value={typeFilter} onChange={setTypeFilter} options={QUOTE_TYPE_OPTIONS} />
-          <Select style={{ width: 100 }} value={orderBy} onChange={setOrderBy} options={QUOTE_ORDER_OPTIONS} />
-          <Button
-            icon={sortDirection === 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
-            onClick={() => setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
-          />
-        </Space>
-      </div>
+      <Title level={4} style={{ marginBottom: 16 }}>문장 관리</Title>
+      <Tabs
+        defaultActiveKey="active"
+        items={[
+          {
+            key: 'active',
+            label: '활성',
+            children: (
+              <>
+                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  <Space>
+                    <Button icon={<UploadOutlined />} onClick={() => setUploadModalOpen(true)}>기본 문장 업로드</Button>
+                    <Select placeholder="상태 필터" allowClear style={{ width: 120 }} value={statusFilter} onChange={setStatusFilter} options={QUOTE_STATUS_OPTIONS} />
+                    <Select placeholder="타입 필터" allowClear style={{ width: 120 }} value={typeFilter} onChange={setTypeFilter} options={QUOTE_TYPE_OPTIONS} />
+                    <Select style={{ width: 100 }} value={orderBy} onChange={setOrderBy} options={QUOTE_ORDER_OPTIONS} />
+                    <Button
+                      icon={sortDirection === 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
+                      onClick={() => setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
+                    />
+                    <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>새로고침</Button>
+                  </Space>
+                </div>
 
-      <div onScroll={handleScroll} style={{ maxHeight: 'calc(100vh - 250px)', overflow: 'auto' }}>
-        <Table
-          columns={columns}
-          dataSource={quotes}
-          rowKey="quoteId"
-          loading={loading}
-          pagination={false}
-          onRow={(record) => ({ onClick: () => openDetail(record), style: { cursor: 'pointer' } })}
-        />
-        {loadingMore && <div style={{ textAlign: 'center', padding: 16 }}><Spin /></div>}
-      </div>
+                <div onScroll={handleScroll} style={{ maxHeight: 'calc(100vh - 300px)', overflow: 'auto' }}>
+                  <Table
+                    columns={columns}
+                    dataSource={quotes}
+                    rowKey="quoteId"
+                    loading={loading}
+                    pagination={false}
+                    onRow={(record) => ({ onClick: () => openDetail(record), style: { cursor: 'pointer' } })}
+                  />
+                  {loadingMore && <div style={{ textAlign: 'center', padding: 16 }}><Spin /></div>}
+                </div>
+              </>
+            ),
+          },
+          {
+            key: 'deleted',
+            label: '삭제됨',
+            children: <DeletedQuotesTab />,
+          },
+        ]}
+      />
 
       {/* 기본 문장 업로드 모달 */}
       <Modal

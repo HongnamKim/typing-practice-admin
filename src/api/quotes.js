@@ -54,4 +54,16 @@ export const quotesApi = {
     const response = await client.post(`/admin/quotes/${quoteId}/restore`);
     return response.data;
   },
+
+  // 삭제된 문장 목록 조회
+  getDeletedList: async (params = {}) => {
+    const response = await client.get('/admin/quotes/deleted', { params });
+    return response.data;
+  },
+
+  // 문장 영구 삭제
+  permanentDelete: async (quoteId) => {
+    const response = await client.delete(`/admin/quotes/${quoteId}/permanent`);
+    return response.data;
+  },
 };

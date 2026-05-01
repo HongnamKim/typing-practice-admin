@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Spin, Descriptions } from 'antd';
-import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+import { SortAscendingOutlined, SortDescendingOutlined, ReloadOutlined } from '@ant-design/icons';
 import { membersApi } from '../api';
 import { useInfiniteScroll } from '../hooks';
 import { ROLE, ROLE_COLORS, ROLE_OPTIONS, MEMBER_ORDER_OPTIONS } from '../constants';
@@ -34,7 +34,7 @@ export default function MembersPage() {
     return f;
   }, [roleFilter, orderBy, sortDirection]);
 
-  const { data: members, loading, loadingMore, handleScroll, updateItem } = useInfiniteScroll(
+  const { data: members, loading, loadingMore, handleScroll, updateItem, refresh } = useInfiniteScroll(
     membersApi.getList,
     filters,
     '회원 목록을 불러오는데 실패했습니다.'
@@ -127,6 +127,7 @@ export default function MembersPage() {
             icon={sortDirection === 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
             onClick={() => setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
           />
+          <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>새로고침</Button>
         </Space>
       </div>
 

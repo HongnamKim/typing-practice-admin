@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions } from 'antd';
-import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+import { SortAscendingOutlined, SortDescendingOutlined, ReloadOutlined } from '@ant-design/icons';
 import { reportsApi } from '../api';
 import { useInfiniteScroll } from '../hooks';
 import { REPORT_STATUS, REPORT_STATUS_COLORS, REPORT_STATUS_OPTIONS, REPORT_REASON_LABELS, REPORT_ORDER_OPTIONS } from '../constants';
@@ -106,6 +106,7 @@ export default function ReportsPage() {
             icon={sortDirection === 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
             onClick={() => setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
           />
+          <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>새로고침</Button>
         </Space>
       </div>
 

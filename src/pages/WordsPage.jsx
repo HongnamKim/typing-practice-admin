@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions, Progress } from 'antd';
-import { SortAscendingOutlined, SortDescendingOutlined, UploadOutlined, PlusOutlined } from '@ant-design/icons';
+import { SortAscendingOutlined, SortDescendingOutlined, UploadOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { wordsApi } from '../api';
 import { useInfiniteScroll } from '../hooks';
 import { WORD_LANGUAGE, WORD_LANGUAGE_COLORS, WORD_LANGUAGE_OPTIONS, WORD_ORDER_OPTIONS } from '../constants';
@@ -208,6 +208,7 @@ export default function WordsPage() {
             icon={sortDirection === 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
             onClick={() => setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
           />
+          <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>새로고침</Button>
         </Space>
       </div>
 
