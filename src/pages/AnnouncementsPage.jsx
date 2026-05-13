@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Table, Tag, Button, Space, Modal, message, Typography, Popconfirm, Spin, Descriptions, DatePicker, Switch, Tabs } from 'antd';
 import { PlusOutlined, ReloadOutlined, PushpinFilled } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -58,6 +58,9 @@ export default function AnnouncementsPage() {
   const [detailTarget, setDetailTarget] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  const editRequestIdRef = useRef(0);
+  const detailRequestIdRef = useRef(0);
+
   const openCreate = () => {
     setEditingId(null);
     setForm({ postedAt: dayjs(), title: emptyLocalized(), content: emptyLocalized(), published: true, pinned: false });
@@ -65,11 +68,13 @@ export default function AnnouncementsPage() {
   };
 
   const openEdit = async (record) => {
+    const requestId = ++editRequestIdRef.current;
     setEditingId(record.id);
     setFormLoading(true);
     setFormModalOpen(true);
     try {
       const detail = await announcementsApi.getDetail(record.id);
+      if (requestId !== editRequestIdRef.current) return;
       setForm({
         postedAt: fromServerToDayjs(detail.postedAt),
         title: detail.title,
@@ -78,10 +83,13 @@ export default function AnnouncementsPage() {
         pinned: detail.pinned,
       });
     } catch (error) {
+      if (requestId !== editRequestIdRef.current) return;
       message.error('공지사항 조회에 실패했습니다.');
       setFormModalOpen(false);
     } finally {
-      setFormLoading(false);
+      if (requestId === editRequestIdRef.current) {
+        setFormLoading(false);
+      }
     }
   };
 
@@ -103,11 +111,18 @@ export default function AnnouncementsPage() {
         pinned: form.pinned,
       };
       if (editingId) {
+        const wasPinned = pinnedItems.some(p => p.id === editingId);
         const updated = await announcementsApi.update(editingId, payload);
         message.success('공지사항이 수정되었습니다.');
-        if (updated.pinned) removeItem(editingId, 'id');
-        else updateItem(editingId, updated, 'id');
-        fetchPinned();
+        if (updated.pinned) {
+          removeItem(editingId, 'id');
+          fetchPinned();
+        } else if (wasPinned) {
+          prependItem(updated);
+          fetchPinned();
+        } else {
+          updateItem(editingId, updated, 'id');
+        }
       } else {
         const created = await announcementsApi.create(payload);
         message.success('공지사항이 등록되었습니다.');
@@ -134,16 +149,21 @@ export default function AnnouncementsPage() {
     }
   };
   const openDetail = async (record) => {
+    const requestId = ++detailRequestIdRef.current;
     setDetailModalOpen(true);
     setDetailLoading(true);
     try {
       const detail = await announcementsApi.getDetail(record.id);
+      if (requestId !== detailRequestIdRef.current) return;
       setDetailTarget(detail);
     } catch (error) {
+      if (requestId !== detailRequestIdRef.current) return;
       message.error('공지사항 상세 조회에 실패했습니다.');
       setDetailTarget(null);
     } finally {
-      setDetailLoading(false);
+      if (requestId === detailRequestIdRef.current) {
+        setDetailLoading(false);
+      }
     }
   };
 

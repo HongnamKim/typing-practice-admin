@@ -1,47 +1,65 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../api';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../api/client';
 
 const AuthContext = createContext(null);
+
+const clearTokens = () => {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       if (token) {
         try {
           const userData = await authApi.getMe();
+          if (cancelled) return;
           if (userData.role === 'ADMIN') {
             setUser(userData);
           } else {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+            clearTokens();
           }
         } catch (error) {
+          if (cancelled) return;
           console.error('Failed to get user info:', error);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+          clearTokens();
         }
       }
-      setLoading(false);
+      if (!cancelled) {
+        setLoading(false);
+      }
     };
 
     initAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (accessToken, refreshToken) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 
-    const userData = await authApi.getMe();
-    if (userData.role !== 'ADMIN') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      throw new Error('관리자 권한이 필요합니다.');
+    try {
+      const userData = await authApi.getMe();
+      if (userData.role !== 'ADMIN') {
+        clearTokens();
+        throw new Error('관리자 권한이 필요합니다.');
+      }
+      setUser(userData);
+    } catch (error) {
+      clearTokens();
+      throw error;
     }
-    setUser(userData);
   };
 
   const logout = async () => {
@@ -50,8 +68,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
+      clearTokens();
       setUser(null);
     }
   };

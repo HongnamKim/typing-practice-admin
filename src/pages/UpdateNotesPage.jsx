@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Table, Tag, Button, Space, Modal, Input, message, Typography, Popconfirm, Spin, Descriptions, DatePicker, Switch, Tabs } from 'antd';
 import { PlusOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -8,7 +8,11 @@ import { formatDateTime, parseServerDate } from '../utils';
 import LocalizedInput from '../components/LocalizedInput';
 
 const { Title, Text } = Typography;
-const emptyLocalized = () => ({ ko: '', en: null, ja: null });
+let itemKeyCounter = 0;
+const generateItemKey = () => `item-${++itemKeyCounter}`;
+const emptyLocalizedItem = () => ({ _key: generateItemKey(), ko: '', en: null, ja: null });
+const withItemKey = (item) => ({ ...item, _key: generateItemKey() });
+const stripItemKey = ({ _key, ...rest }) => rest;
 const toKstString = (dt) => (dt ? dt.format('YYYY-MM-DDTHH:mm:ss') : null);
 const fromServerToDayjs = (utcStr) => {
   const parsed = parseServerDate(utcStr);
@@ -37,6 +41,10 @@ export default function UpdateNotesPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailTarget, setDetailTarget] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  const editRequestIdRef = useRef(0);
+  const detailRequestIdRef = useRef(0);
+
   const openCreate = () => {
     setEditingId(null);
     setForm({ version: '', releasedAt: dayjs(), newFeatures: [], improvements: [], published: true });
@@ -44,23 +52,28 @@ export default function UpdateNotesPage() {
   };
 
   const openEdit = async (record) => {
+    const requestId = ++editRequestIdRef.current;
     setEditingId(record.id);
     setFormLoading(true);
     setFormModalOpen(true);
     try {
       const detail = await updateNotesApi.getDetail(record.id);
+      if (requestId !== editRequestIdRef.current) return;
       setForm({
         version: detail.version,
         releasedAt: fromServerToDayjs(detail.releasedAt),
-        newFeatures: detail.newFeatures || [],
-        improvements: detail.improvements || [],
+        newFeatures: (detail.newFeatures || []).map(withItemKey),
+        improvements: (detail.improvements || []).map(withItemKey),
         published: detail.published,
       });
     } catch (error) {
+      if (requestId !== editRequestIdRef.current) return;
       message.error('업데이트 노트 조회에 실패했습니다.');
       setFormModalOpen(false);
     } finally {
-      setFormLoading(false);
+      if (requestId === editRequestIdRef.current) {
+        setFormLoading(false);
+      }
     }
   };
 
@@ -83,8 +96,8 @@ export default function UpdateNotesPage() {
       const payload = {
         version: form.version.trim(),
         releasedAt: toKstString(form.releasedAt),
-        newFeatures: form.newFeatures,
-        improvements: form.improvements,
+        newFeatures: form.newFeatures.map(stripItemKey),
+        improvements: form.improvements.map(stripItemKey),
         published: form.published,
       };
       if (editingId) {
@@ -120,16 +133,21 @@ export default function UpdateNotesPage() {
     }
   };
   const openDetail = async (record) => {
+    const requestId = ++detailRequestIdRef.current;
     setDetailModalOpen(true);
     setDetailLoading(true);
     try {
       const detail = await updateNotesApi.getDetail(record.id);
+      if (requestId !== detailRequestIdRef.current) return;
       setDetailTarget(detail);
     } catch (error) {
+      if (requestId !== detailRequestIdRef.current) return;
       message.error('업데이트 노트 상세 조회에 실패했습니다.');
       setDetailTarget(null);
     } finally {
-      setDetailLoading(false);
+      if (requestId === detailRequestIdRef.current) {
+        setDetailLoading(false);
+      }
     }
   };
 
@@ -138,12 +156,12 @@ export default function UpdateNotesPage() {
     setDetailTarget(null);
   };
   const addItem = (key) => {
-    setForm({ ...form, [key]: [...form[key], emptyLocalized()] });
+    setForm({ ...form, [key]: [...form[key], emptyLocalizedItem()] });
   };
 
   const updateItemAt = (key, idx, value) => {
     const next = [...form[key]];
-    next[idx] = value;
+    next[idx] = { ...value, _key: form[key][idx]._key };
     setForm({ ...form, [key]: next });
   };
 
@@ -222,7 +240,7 @@ export default function UpdateNotesPage() {
               </div>
               {form.newFeatures.length === 0 && <Text type="secondary">항목이 없습니다.</Text>}
               {form.newFeatures.map((item, idx) => (
-                <div key={idx} style={{ marginBottom: 12, padding: 8, border: '1px solid #f0f0f0', borderRadius: 4 }}>
+                <div key={item._key} style={{ marginBottom: 12, padding: 8, border: '1px solid #f0f0f0', borderRadius: 4 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                     <Text type="secondary">#{idx + 1}</Text>
                     <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeItemAt('newFeatures', idx)} />
@@ -238,7 +256,7 @@ export default function UpdateNotesPage() {
               </div>
               {form.improvements.length === 0 && <Text type="secondary">항목이 없습니다.</Text>}
               {form.improvements.map((item, idx) => (
-                <div key={idx} style={{ marginBottom: 12, padding: 8, border: '1px solid #f0f0f0', borderRadius: 4 }}>
+                <div key={item._key} style={{ marginBottom: 12, padding: 8, border: '1px solid #f0f0f0', borderRadius: 4 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                     <Text type="secondary">#{idx + 1}</Text>
                     <Button size="small" danger icon={<DeleteOutlined />} onClick={() => removeItemAt('improvements', idx)} />

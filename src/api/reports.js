@@ -13,9 +13,9 @@ export const reportsApi = {
     return response.data;
   },
 
-  // 신고 처리 (수정 또는 삭제)
-  process: async (quoteId, data = {}) => {
-    const response = await client.post(`/admin/reports/${quoteId}/process`, data);
+  // 신고 처리 (신고된 문장을 수정 또는 삭제)
+  process: async (reportedQuoteId, data = {}) => {
+    const response = await client.post(`/admin/reports/${reportedQuoteId}/process`, data);
     return response.data;
   },
 

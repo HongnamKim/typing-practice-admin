@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+export const ACCESS_TOKEN_KEY = 'accessToken';
+export const REFRESH_TOKEN_KEY = 'refreshToken';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 const client = axios.create({
@@ -9,10 +12,12 @@ const client = axios.create({
   },
 });
 
+let refreshPromise = null;
+
 // Request 인터셉터: 토큰 자동 추가
 client.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,32 +42,40 @@ client.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (!refreshToken) {
         // 리프레시 토큰 없으면 로그아웃
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
         window.location.href = '/login';
         return Promise.reject(error);
       }
 
       try {
-        // 토큰 갱신 요청
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        // 동시 401 응답 시 refresh는 1번만 수행하고 결과를 공유
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(`${API_BASE_URL}/auth/refresh`, { refreshToken })
+            .then((response) => {
+              const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+              localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+              localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+              return accessToken;
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
+        }
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
+        const newAccessToken = await refreshPromise;
 
         // 원래 요청 재시도
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return client(originalRequest);
       } catch (refreshError) {
         // 갱신 실패 시 로그아웃
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

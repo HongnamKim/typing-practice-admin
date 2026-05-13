@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { message } from 'antd';
 import { DEFAULT_PAGE_SIZE, SCROLL_THRESHOLD } from '../constants';
 
 /**
  * 무한 스크롤 커스텀 훅
  * @param {Function} fetchFn - API 호출 함수 (params를 받아서 { content, page, hasNext }를 반환)
- * @param {Object} filters - 필터 조건 객체
+ * @param {Object} filters - 필터 조건 객체 (호출부에서 useMemo로 안정화 필요)
  * @param {string} errorMessage - 에러 발생 시 표시할 메시지
  */
 export default function useInfiniteScroll(fetchFn, filters, errorMessage = '목록을 불러오는데 실패했습니다.') {
@@ -13,8 +13,10 @@ export default function useInfiniteScroll(fetchFn, filters, errorMessage = '목�
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, hasNext: false });
+  const requestIdRef = useRef(0);
 
   const fetchData = useCallback(async (page = 1, append = false) => {
+    const requestId = ++requestIdRef.current;
     if (append) {
       setLoadingMore(true);
     } else {
@@ -24,13 +26,17 @@ export default function useInfiniteScroll(fetchFn, filters, errorMessage = '목�
     try {
       const params = { page, size: DEFAULT_PAGE_SIZE, ...filters };
       const result = await fetchFn(params);
+      if (requestId !== requestIdRef.current) return;
       setData(prev => append ? [...prev, ...result.content] : result.content);
       setPagination({ page: result.page, hasNext: result.hasNext });
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       message.error(errorMessage);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [fetchFn, filters, errorMessage]);
 

@@ -1,4 +1,4 @@
-import client from './client';
+import client, { REFRESH_TOKEN_KEY } from './client';
 
 export const authApi = {
   // 로그인 (Google OAuth 콜백 후 토큰 교환)
@@ -18,7 +18,7 @@ export const authApi = {
 
   // 로그아웃 (localStorage 처리는 AuthContext에서 담당)
   logout: async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (refreshToken) {
       await client.post('/auth/logout', { refreshToken });
     }

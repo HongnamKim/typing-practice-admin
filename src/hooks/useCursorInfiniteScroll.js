@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { message } from 'antd';
 import { SCROLL_THRESHOLD } from '../constants';
 
 /**
  * 커서 기반 무한 스크롤 커스텀 훅
  * @param {Function} fetchFn - API 호출 함수 (params를 받아서 { content, nextCursor, hasNext }를 반환)
- * @param {Object} filters - 필터 조건 객체
+ * @param {Object} filters - 필터 조건 객체 (호출부에서 useMemo로 안정화 필요)
  * @param {Object} cursorKeys - { at: 'postedAt' | 'releasedAt', cursorAtParam: 'cursorPostedAt' | 'cursorReleasedAt' }
  * @param {string} errorMessage - 에러 발생 시 표시할 메시지
  * @param {number} size - 페이지 크기 (기본 20)
@@ -22,10 +22,12 @@ export default function useCursorInfiniteScroll(
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState(null);
   const [hasNext, setHasNext] = useState(false);
+  const requestIdRef = useRef(0);
 
   const { at, cursorAtParam } = cursorKeys;
 
   const fetchData = useCallback(async (cursor = null, append = false) => {
+    const requestId = ++requestIdRef.current;
     if (append) setLoadingMore(true);
     else setLoading(true);
 
@@ -36,14 +38,18 @@ export default function useCursorInfiniteScroll(
         params.cursorId = cursor.id;
       }
       const result = await fetchFn(params);
+      if (requestId !== requestIdRef.current) return;
       setData(prev => append ? [...prev, ...result.content] : result.content);
       setNextCursor(result.nextCursor);
       setHasNext(result.hasNext);
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       message.error(errorMessage);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [fetchFn, filters, errorMessage, size, at, cursorAtParam]);
 

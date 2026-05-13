@@ -28,6 +28,7 @@ export default function QuotesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0, success: 0, fail: 0 });
   const cancelRef = useRef(false);
+  const detailRequestIdRef = useRef(0);
 
   const filters = useMemo(() => {
     const f = { orderBy, sortDirection };
@@ -169,16 +170,21 @@ export default function QuotesPage() {
   };
 
   const openDetail = async (record) => {
+    const requestId = ++detailRequestIdRef.current;
     setDetailModalOpen(true);
     setDetailLoading(true);
     try {
       const data = await quotesApi.getDetail(record.quoteId);
+      if (requestId !== detailRequestIdRef.current) return;
       setDetailTarget(data);
     } catch (error) {
+      if (requestId !== detailRequestIdRef.current) return;
       message.error('문장 상세 조회에 실패했습니다.');
       setDetailTarget(record);
     } finally {
-      setDetailLoading(false);
+      if (requestId === detailRequestIdRef.current) {
+        setDetailLoading(false);
+      }
     }
   };
 
@@ -287,7 +293,7 @@ export default function QuotesPage() {
       >
         {uploading ? (
           <div>
-            <Progress percent={Math.round((uploadProgress.current / uploadProgress.total) * 100)} status="active" />
+            <Progress percent={uploadProgress.total > 0 ? Math.round((uploadProgress.current / uploadProgress.total) * 100) : 0} status="active" />
             <div style={{ marginTop: 16, textAlign: 'center' }}>
               <Text>{uploadProgress.current} / {uploadProgress.total}</Text>
               <br />

@@ -53,14 +53,13 @@ export default function MembersPage() {
     }
   };
 
-  const handleRoleChange = (memberId, newRole) => {
+  const handleRoleChange = (member, newRole) => {
     if (newRole === ROLE.ADMIN) {
-      const member = members.find(m => m.id === memberId) || detailTarget;
       setAdminConfirmTarget({ ...member, newRole });
       setAdminConfirmOpen(true);
       return;
     }
-    executeRoleChange(memberId, newRole);
+    executeRoleChange(member.id, newRole);
   };
 
   const handleAdminConfirm = async () => {
@@ -169,7 +168,7 @@ export default function MembersPage() {
               <Select
                 value={detailTarget.role}
                 style={{ width: 120 }}
-                onChange={(value) => handleRoleChange(detailTarget.id, value)}
+                onChange={(value) => handleRoleChange(detailTarget, value)}
                 options={ROLE_CHANGE_OPTIONS}
                 disabled={detailTarget.role === ROLE.BANNED}
               />
