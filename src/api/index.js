@@ -4,4 +4,6 @@ export { quotesApi } from './quotes';
 export { reportsApi } from './reports';
 export { statsApi } from './stats';
 export { wordsApi } from './words';
+export { announcementsApi } from './announcements';
+export { updateNotesApi } from './updateNotes';
 export { default as client } from './client';

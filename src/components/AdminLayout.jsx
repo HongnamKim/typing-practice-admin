@@ -10,6 +10,8 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ThunderboltOutlined,
+  NotificationOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -40,6 +42,16 @@ const menuItems = [
     key: '/batch',
     icon: <ThunderboltOutlined />,
     label: '배치 관리',
+  },
+  {
+    key: '/announcements',
+    icon: <NotificationOutlined />,
+    label: '공지사항',
+  },
+  {
+    key: '/update-notes',
+    icon: <HistoryOutlined />,
+    label: '업데이트 노트',
   },
 ];
 

@@ -4,7 +4,7 @@
  * @param {string|Date} date
  * @returns {Date|null}
  */
-const parseServerDate = (date) => {
+export const parseServerDate = (date) => {
   if (!date) return null;
   if (date instanceof Date) return date;
   // ISO 8601에 타임존 정보(Z 또는 ±HH:MM)가 없으면 UTC로 간주

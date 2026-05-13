@@ -9,6 +9,8 @@ import QuotesPage from './pages/QuotesPage';
 import WordsPage from './pages/WordsPage';
 import ReportsPage from './pages/ReportsPage';
 import BatchPage from './pages/BatchPage';
+import AnnouncementsPage from './pages/AnnouncementsPage';
+import UpdateNotesPage from './pages/UpdateNotesPage';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -44,6 +46,8 @@ function AppRoutes() {
         <Route path="words" element={<WordsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="batch" element={<BatchPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="update-notes" element={<UpdateNotesPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/members" replace />} />
     </Routes>
