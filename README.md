@@ -23,12 +23,32 @@
 - 상세 보기 → 승인, 거부, 수정, 숨김, 복원, 삭제
 - 상세 모달에서 타이핑 통계 확인 (CPM, 정확도, 초기화 횟수)
 - 기본 문장 벌크 업로드 (배치 처리, 진행률 표시)
+- 삭제된 문장 탭: 복원 / 영구 삭제 (ID 입력 확인)
+
+### 단어 관리
+
+- 단어 목록 조회 (언어 필터, 정렬)
+- 단어 등록 / 수정 / 삭제
+- 기본 단어 벌크 업로드 (배치 처리, 진행률 표시)
 
 ### 신고 관리
 
 - 신고 목록 조회 (상태 필터, 정렬)
 - 상세 보기 → 문장 수정 후 처리 / 문장 삭제
 - 신고 삭제
+
+### 공지사항 관리
+
+- 공지사항 목록 조회 (커서 기반 무한 스크롤)
+- 다국어(ko/en/ja) 제목/본문 작성
+- 게시 여부, 고정 여부, 게시 일시(KST) 지정
+- 고정 공지는 상단 별도 영역에 표시
+
+### 업데이트 노트 관리
+
+- 업데이트 노트 목록 조회 (커서 기반 무한 스크롤)
+- 버전(`v1.8.1` 형식) / 배포 일시(KST) / 게시 여부
+- 새 기능 · 개선 사항 항목별 다국어(ko/en/ja) 입력
 
 ### 배치 관리
 
@@ -72,30 +92,42 @@ npm start
 ```
 src/
 ├── api/                # API 클라이언트 및 도메인별 API 모듈
-│   ├── client.js       # axios 인스턴스 (JWT 인터셉터, 토큰 갱신)
+│   ├── client.js       # axios 인스턴스 (JWT 인터셉터, 토큰 갱신, 토큰 키 상수)
+│   ├── index.js        # API 모듈 re-export
 │   ├── auth.js
 │   ├── members.js
 │   ├── quotes.js
+│   ├── words.js
 │   ├── reports.js
+│   ├── announcements.js
+│   ├── updateNotes.js
 │   └── stats.js
 ├── components/
-│   └── AdminLayout.jsx # 사이드바 + 헤더 레이아웃
+│   ├── AdminLayout.jsx     # 사이드바 + 헤더 레이아웃
+│   └── LocalizedInput.jsx  # 다국어(ko/en/ja) 입력 컴포넌트
 ├── const/
-│   └── default-quotes.const.js  # 기본 문장 데이터
+│   ├── default-quotes.const.js  # 기본 문장 데이터
+│   └── default-words.const.js   # 기본 단어 데이터
 ├── constants/
 │   └── index.js        # 역할, 상태, 타입 등 상수 정의
 ├── contexts/
-│   └── AuthContext.jsx  # 인증 상태 관리
+│   └── AuthContext.jsx # 인증 상태 관리
 ├── hooks/
-│   └── useInfiniteScroll.js  # 무한 스크롤 커스텀 훅
+│   ├── index.js
+│   ├── useInfiniteScroll.js        # 오프셋 기반 무한 스크롤
+│   └── useCursorInfiniteScroll.js  # 커서 기반 무한 스크롤
 ├── pages/
-│   ├── BatchPage.jsx    # 배치 관리
-│   ├── LoginPage.jsx    # Google OAuth 로그인
-│   ├── MembersPage.jsx  # 회원 관리
-│   ├── QuotesPage.jsx   # 문장 관리
-│   └── ReportsPage.jsx  # 신고 관리
+│   ├── LoginPage.jsx          # Google OAuth 로그인
+│   ├── MembersPage.jsx        # 회원 관리
+│   ├── QuotesPage.jsx         # 문장 관리
+│   ├── DeletedQuotesTab.jsx   # 삭제된 문장 탭 (QuotesPage 내부)
+│   ├── WordsPage.jsx          # 단어 관리
+│   ├── ReportsPage.jsx        # 신고 관리
+│   ├── AnnouncementsPage.jsx  # 공지사항 관리
+│   ├── UpdateNotesPage.jsx    # 업데이트 노트 관리
+│   └── BatchPage.jsx          # 배치 관리
 └── utils/
-    └── index.js         # 날짜 포맷 등 유틸리티
+    └── index.js        # 날짜 포맷, KST↔UTC 변환 등 유틸리티
 ```
 
 ## 관련 저장소
