@@ -192,6 +192,8 @@ export default function UpdateNotesPage() {
           columns={columns}
           dataSource={items}
           rowKey="id"
+          tableLayout="fixed"
+          sticky
           loading={loading}
           pagination={false}
           locale={{ emptyText: '업데이트 노트가 없습니다.' }}

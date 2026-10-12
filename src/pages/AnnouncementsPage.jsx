@@ -196,6 +196,7 @@ export default function AnnouncementsPage() {
                         columns={columns}
                         dataSource={pinnedItems}
                         rowKey="id"
+                    tableLayout="fixed"
                         loading={pinnedLoading}
                         pagination={false}
                         size="small"
@@ -210,6 +211,8 @@ export default function AnnouncementsPage() {
                     columns={columns}
                     dataSource={items}
                     rowKey="id"
+                    tableLayout="fixed"
+                    sticky
                     loading={loading}
                     pagination={false}
                     locale={{ emptyText: '공지사항이 없습니다.' }}

@@ -79,6 +79,8 @@ export default function DeletedQuotesTab() {
           columns={columns}
           dataSource={quotes}
           rowKey="quoteId"
+          tableLayout="fixed"
+          sticky
           loading={loading}
           pagination={false}
           locale={{ emptyText: '삭제된 문장이 없습니다.' }}

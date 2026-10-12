@@ -115,6 +115,8 @@ export default function ReportsPage() {
           columns={columns}
           dataSource={reports}
           rowKey="id"
+          tableLayout="fixed"
+          sticky
           loading={loading}
           pagination={false}
           onRow={(record) => ({ onClick: () => openDetail(record), style: { cursor: 'pointer' } })}

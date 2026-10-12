@@ -223,6 +223,8 @@ export default function WordsPage() {
           columns={columns}
           dataSource={words}
           rowKey="wordId"
+          tableLayout="fixed"
+          sticky
           loading={loading}
           pagination={false}
           onRow={(record) => ({ onClick: () => openDetail(record), style: { cursor: 'pointer' } })}
