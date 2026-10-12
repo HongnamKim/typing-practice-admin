@@ -137,6 +137,7 @@ export default function MembersPage() {
           dataSource={members}
           rowKey="id"
           tableLayout="fixed"
+          sticky
           loading={loading}
           pagination={false}
           onRow={(record) => ({ onClick: () => openDetail(record), style: { cursor: 'pointer' } })}
