@@ -109,11 +109,11 @@ export default function MembersPage() {
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-    { title: '이메일', dataIndex: 'email', key: 'email' },
-    { title: '닉네임', dataIndex: 'nickname', key: 'nickname' },
-    { title: '권한', dataIndex: 'role', key: 'role', render: (role) => <Tag color={ROLE_COLORS[role]}>{role}</Tag> },
-    { title: '가입일', dataIndex: 'createdAt', key: 'createdAt', render: formatDate },
-    { title: '최근 연습', dataIndex: 'lastPracticedAt', key: 'lastPracticedAt', render: formatDate },
+    { title: '이메일', dataIndex: 'email', key: 'email', ellipsis: true },
+    { title: '닉네임', dataIndex: 'nickname', key: 'nickname', ellipsis: true },
+    { title: '권한', dataIndex: 'role', key: 'role', width: 100, render: (role) => <Tag color={ROLE_COLORS[role]}>{role}</Tag> },
+    { title: '가입일', dataIndex: 'createdAt', key: 'createdAt', width: 120, render: formatDate },
+    { title: '최근 연습', dataIndex: 'lastPracticedAt', key: 'lastPracticedAt', width: 120, render: formatDate },
   ];
 
   return (
@@ -136,6 +136,7 @@ export default function MembersPage() {
           columns={columns}
           dataSource={members}
           rowKey="id"
+          tableLayout="fixed"
           loading={loading}
           pagination={false}
           onRow={(record) => ({ onClick: () => openDetail(record), style: { cursor: 'pointer' } })}
