@@ -3,7 +3,7 @@ import { Table, Tag, Button, Select, Space, Modal, Input, message, Typography, P
 import { SortAscendingOutlined, SortDescendingOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import { quotesApi } from '../api';
 import { useInfiniteScroll } from '../hooks';
-import { QUOTE_STATUS, QUOTE_STATUS_COLORS, QUOTE_STATUS_OPTIONS, QUOTE_TYPE, QUOTE_TYPE_COLORS, QUOTE_TYPE_OPTIONS, QUOTE_ORDER_OPTIONS } from '../constants';
+import { ROLE_COLORS, QUOTE_STATUS, QUOTE_STATUS_COLORS, QUOTE_STATUS_OPTIONS, QUOTE_TYPE, QUOTE_TYPE_COLORS, QUOTE_TYPE_OPTIONS, QUOTE_ORDER_OPTIONS } from '../constants';
 import { formatDateTime } from '../utils';
 import { defaultQuotes } from '../const/default-quotes.const';
 import DeletedQuotesTab from './DeletedQuotesTab';
@@ -197,6 +197,7 @@ export default function QuotesPage() {
     { title: 'ID', dataIndex: 'quoteId', key: 'quoteId', width: 70 },
     { title: '문장', dataIndex: 'sentence', key: 'sentence', ellipsis: true },
     { title: '출처', dataIndex: 'author', key: 'author', width: 120, render: (author) => author || '-' },
+    { title: '업로더', key: 'member', width: 120, ellipsis: true, render: (_, record) => record.member?.nickname || record.member?.email || '-' },
     { title: '언어', dataIndex: 'language', key: 'language', width: 80 },
     { title: '난이도', dataIndex: 'difficulty', key: 'difficulty', width: 80, render: (v) => v != null ? v.toFixed(1) : '-' },
     { title: '타입', dataIndex: 'type', key: 'type', width: 90, render: (type) => <Tag color={QUOTE_TYPE_COLORS[type]}>{type}</Tag> },
@@ -319,6 +320,15 @@ export default function QuotesPage() {
             <Descriptions.Item label="ID">{detailTarget.quoteId}</Descriptions.Item>
             <Descriptions.Item label="문장"><Text style={{ whiteSpace: 'pre-wrap' }}>{detailTarget.sentence}</Text></Descriptions.Item>
             <Descriptions.Item label="출처">{detailTarget.author || '-'}</Descriptions.Item>
+            <Descriptions.Item label="업로더">
+              {detailTarget.member ? (
+                <Space>
+                  <span>{detailTarget.member.nickname}</span>
+                  <Text type="secondary">{detailTarget.member.email}</Text>
+                  <Tag color={ROLE_COLORS[detailTarget.member.role]}>{detailTarget.member.role}</Tag>
+                </Space>
+              ) : '탈퇴한 회원'}
+            </Descriptions.Item>
             <Descriptions.Item label="언어">{detailTarget.language}</Descriptions.Item>
             <Descriptions.Item label="난이도">{detailTarget.difficulty != null ? detailTarget.difficulty.toFixed(1) : '-'}</Descriptions.Item>
             <Descriptions.Item label="타입"><Tag color={QUOTE_TYPE_COLORS[detailTarget.type]}>{detailTarget.type}</Tag></Descriptions.Item>

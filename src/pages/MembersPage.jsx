@@ -113,6 +113,7 @@ export default function MembersPage() {
     { title: '닉네임', dataIndex: 'nickname', key: 'nickname' },
     { title: '권한', dataIndex: 'role', key: 'role', render: (role) => <Tag color={ROLE_COLORS[role]}>{role}</Tag> },
     { title: '가입일', dataIndex: 'createdAt', key: 'createdAt', render: formatDate },
+    { title: '최근 연습', dataIndex: 'lastPracticedAt', key: 'lastPracticedAt', render: formatDate },
   ];
 
   return (
@@ -121,7 +122,7 @@ export default function MembersPage() {
         <Title level={4} style={{ margin: 0 }}>회원 관리</Title>
         <Space>
           <Select placeholder="권한 필터" allowClear style={{ width: 120 }} value={roleFilter} onChange={setRoleFilter} options={ROLE_OPTIONS} />
-          <Select style={{ width: 100 }} value={orderBy} onChange={setOrderBy} options={MEMBER_ORDER_OPTIONS} />
+          <Select style={{ width: 120 }} value={orderBy} onChange={setOrderBy} options={MEMBER_ORDER_OPTIONS} />
           <Button
             icon={sortDirection === 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
             onClick={() => setSortDirection(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
@@ -174,6 +175,7 @@ export default function MembersPage() {
               />
             </Descriptions.Item>
             <Descriptions.Item label="가입일">{formatDateTime(detailTarget.createdAt)}</Descriptions.Item>
+            <Descriptions.Item label="최근 연습">{formatDateTime(detailTarget.lastPracticedAt)}</Descriptions.Item>
           </Descriptions>
         )}
       </Modal>

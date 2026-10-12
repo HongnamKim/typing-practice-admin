@@ -87,6 +87,7 @@ export const REPORT_REASON_LABELS = {
 export const MEMBER_ORDER_OPTIONS = [
   { value: 'createdAt', label: '가입일' },
   { value: 'nickname', label: '닉네임' },
+  { value: 'lastPracticedAt', label: '최근 연습' },
 ];
 
 export const QUOTE_ORDER_OPTIONS = [
